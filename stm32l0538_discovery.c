@@ -7,13 +7,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright(c) 2016 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2016 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -50,8 +49,8 @@
   * @brief STM32L0538 DISCOVERY BSP Driver version number
   */
 #define __STM32L0538_DISCO_BSP_VERSION_MAIN   (0x01) /*!< [31:24] main version */
-#define __STM32L0538_DISCO_BSP_VERSION_SUB1   (0x02) /*!< [23:16] sub1 version */
-#define __STM32L0538_DISCO_BSP_VERSION_SUB2   (0x05) /*!< [15:8]  sub2 version */
+#define __STM32L0538_DISCO_BSP_VERSION_SUB1   (0x03) /*!< [23:16] sub1 version */
+#define __STM32L0538_DISCO_BSP_VERSION_SUB2   (0x00) /*!< [15:8]  sub2 version */
 #define __STM32L0538_DISCO_BSP_VERSION_RC     (0x00) /*!< [7:0]  release candidate */
 #define __STM32L0538_DISCO_BSP_VERSION        ((__STM32L0538_DISCO_BSP_VERSION_MAIN << 24)\
                                              |(__STM32L0538_DISCO_BSP_VERSION_SUB1 << 16)\
@@ -102,6 +101,9 @@ void                      EPD_IO_WriteData(uint16_t RegValue);
 void                      EPD_IO_WriteReg(uint8_t Reg);
 uint16_t                  EPD_IO_ReadData(void);
 void                      EPD_Delay(uint32_t delay);
+void                      EPD_ReadBusy(void);
+void                      EPD_IO_Reset_Low(void);
+void                      EPD_IO_Reset_High(void);
 /**
   * @}
   */
@@ -324,10 +326,10 @@ static void SPIx_Write(uint8_t Value)
   */
 static void SPIx_Error (void)
 {
-  /* De-Initialize the SPI comunication BUS */
+  /* De-Initialize the SPI communication BUS */
   HAL_SPI_DeInit(&SpiHandle);
 
-  /* Re-Initiaize the SPI comunication BUS */
+  /* Re-Initiaize the SPI communication BUS */
   SPIx_Init();
 }
 
@@ -406,14 +408,14 @@ void EPD_IO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(EPD_BUSY_GPIO_PORT, &GPIO_InitStruct);
 
-  /* Enbale Display */
+  /* Enable Display */
   EPD_PWR_LOW();
 
   /* Set or Reset the control line */
   EPD_CS_LOW();
   EPD_CS_HIGH();
 
-  /* EPD reset pin mamagement */
+  /* EPD reset pin management */
   EPD_RESET_HIGH();
   EPD_Delay(10);
 
@@ -489,6 +491,43 @@ void EPD_Delay (uint32_t Delay)
 }
 
 /**
+  * @brief  wait for the EPD to be ready.
+  * @param  None.
+  * @retval None
+  */
+void EPD_ReadBusy(void)
+{ 
+  while(1)
+  {	
+    /* BUSY = 1 */
+    if(isEPD_BUSY() == 0)
+    {
+      break;
+    }
+  }
+}
+
+/**
+  * @brief  EPD Reset Low.
+  * @param  None.
+  * @retval None
+  */
+void EPD_IO_Reset_Low(void)
+{
+  EPD_RESET_LOW();
+}
+
+/**
+  * @brief  EPD Reset High.
+  * @param  None.
+  * @retval None
+  */
+void EPD_IO_Reset_High(void)
+{
+  EPD_RESET_HIGH();
+}
+
+/**
   * @}
   */
 
@@ -503,5 +542,3 @@ void EPD_Delay (uint32_t Delay)
 /**
   * @}
   */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
